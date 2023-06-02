@@ -17,7 +17,6 @@ VideoCap::VideoCap() {
     memset(&(this->rgb_frame), 0, sizeof(this->rgb_frame));
     memset(&(this->picture), 0, sizeof(this->picture));
     memset(&(this->packet), 0, sizeof(this->packet));
-    av_init_packet(&(this->packet));
 }
 
 
@@ -56,7 +55,6 @@ void VideoCap::release(void) {
         this->packet.data = NULL;
     }
     memset(&packet, 0, sizeof(packet));
-    av_init_packet(&packet);
 
     this->codec = NULL;
     this->video_stream = NULL;
@@ -95,7 +93,7 @@ bool VideoCap::open(const char *url) {
         goto error;
 
     // find the most suitable stream of given type (e.g. video) and set the codec accordingly
-    idx = av_find_best_stream(this->fmt_ctx, AVMEDIA_TYPE_VIDEO, -1, -1, &(this->codec), 0);
+    idx = av_find_best_stream(this->fmt_ctx, AVMEDIA_TYPE_VIDEO, -1, -1, ((const AVCodec**)&(this->codec)), 0);
     if (idx < 0)
         goto error;
 
@@ -196,52 +194,18 @@ bool VideoCap::grab(void) {
         }
 
         // decode the video frame
-        avcodec_decode_video2(this->video_dec_ctx, this->frame, &got_frame, &(this->packet));
-
-        if(got_frame) {
-#ifdef DEBUG
-            // get timestamps of packet from RTPS stream
-            std::cerr << "### Frame No. " <<  this->frame_number << " ###" << std::endl;
-            std::cerr << "synced: " << packet.synced << std::endl;
-            std::cerr << "seq: " << packet.seq << std::endl;
-            std::cerr << "timestamp: " << packet.timestamp << std::endl;
-            std::cerr << "last_rtcp_ntp_time (NTP): " << packet.last_rtcp_ntp_time << std::endl;
-            struct timeval last_rtcp_ntp_time_unix;
-            ntp2tv(&packet.last_rtcp_ntp_time, &last_rtcp_ntp_time_unix);
-            std::cerr << "last_rtcp_ntp_time (UNIX): ";
-            printf("%ld.%06ld\n", last_rtcp_ntp_time_unix.tv_sec, last_rtcp_ntp_time_unix.tv_usec);
-            std::cerr << "last_rtcp_timestamp: " << packet.last_rtcp_timestamp << std::endl;
-#endif
-
-            // wait for the first RTCP sender report containing RTP timestamp <-> NTP walltime mapping,
-            // before this no reliable frame timestmap can be computed
-            if (this->is_rtsp && packet.synced) {
-                // compute absolute UNIX timestamp for each frame as follows (90 kHz clock as in RTP spec):
-                // frame_time_unix = last_rtcp_ntp_time_unix + (timestamp - last_rtcp_timestamp) / 90000
-                struct timeval tv;
-                ntp2tv(&packet.last_rtcp_ntp_time, &tv);
-                double rtp_diff = (double)(packet.timestamp - packet.last_rtcp_timestamp) / 90000.0;
-                this->frame_timestamp = (double)tv.tv_sec + (double)tv.tv_usec / 1000000.0 + rtp_diff;
-#ifdef DEBUG
-                std::cerr << "frame_timestamp (UNIX): " << std::fixed << this->frame_timestamp << std::endl;
-#endif
-            }
-            // if no RTSP is used or no RTP timestamp <-> NTP walltime mapping is received, make timestamp from local system time
-            else {
-                auto now = std::chrono::system_clock::now();
-                this->frame_timestamp = std::chrono::duration<double>(now.time_since_epoch()).count();
-            }
-
-            this->frame_number++;
-            valid = true;
-
+        avcodec_send_packet(this->video_dec_ctx,  &this->packet);
+        ret = avcodec_receive_frame(this->video_dec_ctx, this->frame);
+        if (ret == AVERROR(EAGAIN)){
+            continue;
+        }if(ret == AVERROR_EOF) {
+            break;;
+        } else if (ret < 0) {
+            fprintf(stderr, "Error while receiving a frame from the decoder: %d\n", ret);
+            break;
         }
-        else {
-            count_errs++;
-            if (count_errs > max_number_of_attempts)
-                break;
-        }
-
+        this->frame_number++;
+        valid = true;
     }
 
     return valid;
@@ -252,7 +216,6 @@ bool VideoCap::retrieve(uint8_t **frame, int *step, int *width, int *height, int
 
     if (!this->video_stream || !(this->frame->data[0]))
         return false;
-
     if (this->img_convert_ctx == NULL ||
         this->picture.width != this->video_dec_ctx->width ||
         this->picture.height != this->video_dec_ctx->height ||
