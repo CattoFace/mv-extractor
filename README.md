@@ -15,6 +15,7 @@ This class is a replacement for OpenCV's [VideoCapture](https://docs.opencv.org/
 - decoded frame as BGR image
 - motion vectors
 - Frame type (keyframe, P- or B-frame)
+- (for RTSP streams): UTC wall time of the moment the sender sent out a frame (as opposed to an easily retrievable timestamp for the frame reception)
 
 These additional features enable further projects, such as fast visual object tracking or synchronization of multiple RTSP streams. Both a C++ and a Python API is provided. Under the hood [FFMPEG](https://github.com/FFmpeg/FFmpeg) is used.
 
