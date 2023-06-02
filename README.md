@@ -15,7 +15,6 @@ This class is a replacement for OpenCV's [VideoCapture](https://docs.opencv.org/
 - decoded frame as BGR image
 - motion vectors
 - Frame type (keyframe, P- or B-frame)
-- (for RTSP streams): UTC wall time of the moment the sender sent out a frame (as opposed to an easily retrievable timestamp for the frame reception)
 
 These additional features enable further projects, such as fast visual object tracking or synchronization of multiple RTSP streams. Both a C++ and a Python API is provided. Under the hood [FFMPEG](https://github.com/FFmpeg/FFmpeg) is used.
 
@@ -30,29 +29,17 @@ A usage example can be found in `extract_mvs.py`.
 
 ### Recent Changes
 
-- Provided PyPI package
-- Added unittests in `tests/tests.py`
-- Updated for compatibility with Python >3.8
-- Provided a script to wrap Docker run command
-- Updated demo script with command line arguments for extraction and storing of motion vectors
-- Changed Docker image to manylinux_2_24_x86_64 to prepare for building wheels
-
-### Looking for Contributors
-
-The mv-extractor seems to be quite popular and I want to improve it. However, I do not have the time and resources to do this alone. Hence, I gladly welcome any community contributions.
-
+- Updated compatibility for opencv 4.7
 
 ## Quickstart
 
 ### Step 1: Install
 
-You can install the motion vector extractor via pip
+You can install the motion vector extractor using
 ```
-pip install --upgrade pip
-pip install motion-vector-extractor
+pip install git+https://github.com/CattoFace/mv-extractor
 ```
-Note, that we currently provide the package only for x86-64 linux, such as Ubuntu or Debian, and Python 3.8, 3.9, and 3.10. If you are on a different platform, please use the Docker image as described [below](#installation-via-docker).
-
+This method has been tested on ArchLinux 6.3 and python3.11
 ### Step 2: Extract Motion Vectors
 
 Download the example video `vid_h264.mp4` from the repo and place it somewhere. To extract the motion vectors, open a terminal at the same location and run
