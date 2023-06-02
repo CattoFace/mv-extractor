@@ -6,7 +6,9 @@
     <br>
     Motion Vector Extractor
 </h1>
-
+<h2>
+THIS IS A FORK OF MV_EXTRACTOR UPDATED TO WORK WITH OPENCV 4.7
+</h2>
 This tool extracts frames, motion vectors, frame types and timestamps from H.264 and MPEG-4 Part 2 encoded videos.
 
 This class is a replacement for OpenCV's [VideoCapture](https://docs.opencv.org/4.1.0/d8/dfe/classcv_1_1VideoCapture.html) and can be used to read and decode video frames from a H.264 or MPEG-4 Part 2 encoded video stream/file. It returns the following values for each frame:

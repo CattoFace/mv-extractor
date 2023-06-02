@@ -24,7 +24,7 @@ mvextractor = Extension('mvextractor.videocap',
        extra_link_args = ['-fPIC', '-Wl,-Bsymbolic'])
 
 setup(name='motion-vector-extractor',
-       author='Lukas Bommes',
+       author='CattoFace',
        author_email=' ',
        version="2.0.0",
        license='MIT',
