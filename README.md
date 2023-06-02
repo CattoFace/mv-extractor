@@ -7,7 +7,7 @@
     Motion Vector Extractor
 </h1>
 <h2>
-THIS IS A FORK OF MV_EXTRACTOR UPDATED TO WORK WITH OPENCV 4.7
+THIS IS A FORK OF MV-EXTRACTOR UPDATED TO WORK WITH OPENCV 4.7
 </h2>
 This tool extracts frames, motion vectors, frame types and timestamps from H.264 and MPEG-4 Part 2 encoded videos.
 
